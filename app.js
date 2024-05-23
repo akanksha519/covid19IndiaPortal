@@ -67,7 +67,7 @@ app.post('/login/', async (req, res) => {
           username: username,
         }
         const token = jwttoken.sign(payload, 'secretkey')
-        res.send({ jwtToken: token });
+        res.send({jwtToken: token})
       }
     }
   } catch (e) {
@@ -75,30 +75,35 @@ app.post('/login/', async (req, res) => {
   }
 })
 
-const convertDbObjectToResponseObject = (dbObject) => {
+const convertDbObjectToResponseObject = dbObject => {
   return {
     stateId: dbObject.state_id,
     stateName: dbObject.state_name,
     population: dbObject.population,
-  };
-};
+  }
+}
 
-app.get('/states', check, async (req, res) => {
+app.get('/states/', check, async (req, res) => {
   try {
     const api2 = `SELECT * FROM state;`
     const ans = await db.all(api2)
-    res.send(ans.map((eachState) =>
-convertDbObjectToResponseObject(eachState)));
+    res.send(ans.map(eachState => convertDbObjectToResponseObject(eachState)))
   } catch (e) {
     console.log('get api error : ' + e)
   }
 })
 
-app.get('/states/:stateId', check, async (req, res) => {
+app.get('/states/:stateId/', check, async (req, res) => {
   const {stateId} = req.params
   const api3 = `SELECT * FROM state WHERE state_id='${stateId}';`
-  const ans = await db.get(api3)
-  res.send(ans)
+  const state = await db.get(api3)
+  const {state_id, state_name, population} = state
+  const dbResponse = {
+    stateId: state_id,
+    stateName: state_name,
+    population: population,
+  }
+  res.send(dbResponse)
 })
 
 app.post('/districts/', check, async (req, res) => {
@@ -114,8 +119,19 @@ app.post('/districts/', check, async (req, res) => {
 app.get('/districts/:districtId/', check, async (req, res) => {
   const {districtId} = req.params
   const api5 = `SELECT * FROM district WHERE district_id = '${districtId}';`
-  const ans = await db.get(api5)
-  res.send(ans)
+  const district = await db.get(api5)
+  const {district_id, district_name, state_id, cases, cured, active, deaths} =
+    district
+  const dbResponse = {
+    districtId: district_id,
+    districtName: district_name,
+    stateId: state_id,
+    cases: cases,
+    cured: cured,
+    active: active,
+    deaths: deaths,
+  }
+  res.send(dbResponse)
 })
 
 app.delete('/districts/:districtId/', check, async (req, res) => {
@@ -133,7 +149,7 @@ app.put('/districts/:districtId/', check, async (req, res) => {
   res.send('District Details Updated')
 })
 
-app.get('/states/:stateId/stats', check, async (req, res) => {
+app.get('/states/:stateId/stats/', check, async (req, res) => {
   const {stateId} = req.params
   const api8 = `SELECT SUM(cases) AS totalCases,SUM(cured) AS totalCured,SUM(active) AS totalActive,SUM(deaths) AS totalDeaths FROM district WHERE state_id = '${stateId}';`
   const ans = await db.get(api8)
