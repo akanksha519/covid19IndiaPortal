@@ -75,11 +75,20 @@ app.post('/login/', async (req, res) => {
   }
 })
 
+const convertDbObjectToResponseObject = (dbObject) => {
+  return {
+    stateId: dbObject.state_id,
+    stateName: dbObject.state_name,
+    population: dbObject.population,
+  };
+};
+
 app.get('/states', check, async (req, res) => {
   try {
     const api2 = `SELECT * FROM state;`
     const ans = await db.all(api2)
-    res.send(ans)
+    res.send(ans.map((eachState) =>
+convertDbObjectToResponseObject(eachState)));
   } catch (e) {
     console.log('get api error : ' + e)
   }
